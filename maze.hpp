@@ -3,14 +3,6 @@
 #include <fstream>
 using namespace std;
 
-struct Cell {
-    int value; // 1 for wall 0 for 
-    Cell* left;
-    Cell* right;
-    Cell* up;
-    Cell* down;
-};
-
 class Maze{
     public:
     // Constructors
@@ -25,8 +17,8 @@ class Maze{
 
     private:
         vector<vector<int>> graph;
-        Cell* start;
-        Cell* target;
-        Cell* current;
-        Cell* previous;
+        int start [2];
+        int target [2];
+        int current [2];
+        int previous [2];
 };
