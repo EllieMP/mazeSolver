@@ -20,7 +20,17 @@ Maze::Maze(fstream& filestream){
         getline(filestream, line);
         tempCell = insertCellRow(line, tempCell);
     }
+
+    printMaze();
     findStartAndTarget();
+
+/*
+    cout << "Start: " << this->start << endl;
+    cout << "Target: " << this->target << endl;
+    cout << "Current: " << this->current << endl;
+    cout << "Previous: " << this->previous << endl;
+    cout << "Zero Cell: " << this->zeroCell << endl;
+*/
 }
 
 // Methods
@@ -34,23 +44,23 @@ Cell* Maze::insertCellRow(string newRowString, Cell* prevRowFirstCell = nullptr)
         newCell = new Cell;
         if (newCell == nullptr) break; // Accounts for running out of memory
         if (i == 0) leftmostCell = newCell;
-
         // Assign available new cell pointers
         newCell->value = newRowString[i];
         newCell->left = prevCell;
-        newCell->up = prevRowCell;
+        if (prevRowCell != nullptr) newCell->up = prevRowCell;
 
         // Assign available previous cell pointers
-        prevCell->right = newCell;
+        if (prevCell != nullptr) prevCell->right = newCell;
 
         // Assign available pointers from the cenn above the new cell
         if (prevRowCell != nullptr) prevRowCell->down = newCell;
+
         else {  // Assigning zero cell value in best performance spot without over complicating code
             if (prevCell == nullptr) this->zeroCell = newCell;
         }
-
+        
         prevCell = newCell;
-        prevRowCell = prevRowCell->right;
+        if (prevRowFirstCell != nullptr) prevRowCell = prevRowCell->right;
     }
     if (leftmostCell == nullptr){
         return nullptr;
@@ -77,8 +87,8 @@ bool Maze::findStartAndTarget(){
                 this->start = tempCell;
                 startFound = true;
             }
-            tempCell = tempCell->right;
         }
+        tempCell = tempCell->right;
     }
     while (tempCell->down != nullptr){
         if (tempCell->value == '0'){
@@ -137,14 +147,25 @@ bool Maze::findStartAndTarget(){
 
 bool Maze::printMaze(){
     Cell* tempCellPtr;
+    Cell* tempLeftCellPtr;
+    tempCellPtr = this->zeroCell;
+    tempLeftCellPtr = this->zeroCell;
+    int i = 0;
     while(tempCellPtr->down != nullptr){
-        string line;
-        tempCellPtr = this->zeroCell;
         while (tempCellPtr->right != nullptr) {
-            line.push_back(tempCellPtr->value);
+            cout << tempCellPtr->value;
             tempCellPtr = tempCellPtr->right;
         }
-        cout << line << endl;
+        cout << tempCellPtr->value << endl; // Accounts for last element
+        tempCellPtr = tempLeftCellPtr->down;
+        tempLeftCellPtr = tempLeftCellPtr->down;
+        i++;
     }
+
+    while (tempCellPtr->right != nullptr) { // Accounts for last row
+            cout << tempCellPtr->value;
+            tempCellPtr = tempCellPtr->right;
+    }
+    cout << tempCellPtr->value << endl;
     return true;
 }
