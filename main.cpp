@@ -15,18 +15,9 @@ int main( ) {
     fstream fileStream;
     fileStream.open(fileName);
     if(fileStream.fail()){
-        cout << "There was an issue opening the file";
+        cout << "Error: There was an issue opening the file.";
     }
     else {
-        Maze mazeToSolve(fileStream); // Declare maze
+        Maze mazeToSolve(fileStream); // Declare maze from file stream
     }
-}
-
-// Prints the graph row by row
-int printGraph(vector<vector<int>> graphToPrint){
-    for(vector<int> i: graphToPrint){
-        for(int j: i) cout << j;
-        cout << endl;
-    }
-    return 0;
 }

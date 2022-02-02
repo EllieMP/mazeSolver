@@ -6,93 +6,145 @@
 
 // Constructors
 
-Maze::Maze(fstream& fstream){
-    string line;
-    // Parse filestream into 2d vector of 1s and 0s
-    while(!fstream.eof()) { // Loop until file ends
-        getline(fstream, line); // Get line from file and wipe previous line
-        vector<int> tempVector; // Populate vector with appropriate 1s and 0s
-        for (int i = 0; i < line.length(); i++) { 
-            tempVector.push_back(line[i] - '0'); // Assumes charecter integer values follow ascii standards
-        }
-        this->graph.push_back(tempVector); // Append current line to graph as a vector of 1s and 0s
-    }
+Maze::Maze(){ // Allows the creation of an empty maze
+    this->start = nullptr;
+    this->target = nullptr;
+    this->current = nullptr;
+    this->previous = nullptr;
+}
 
-    // Find start and target cell
+Maze::Maze(fstream& filestream){
+    string line;
+    Cell* tempCell = nullptr;
+    while (!filestream.eof()){ // Generate maze line by line
+        getline(filestream, line);
+        tempCell = insertCellRow(line, tempCell);
+    }
+    findStartAndTarget();
+}
+
+// Methods
+
+Cell* Maze::insertCellRow(string newRowString, Cell* prevRowFirstCell = nullptr){
+    Cell* newCell = nullptr;
+    Cell* prevCell = nullptr;
+    Cell* prevRowCell = prevRowFirstCell;
+    Cell* leftmostCell;
+    for (int i = 0; i < newRowString.length(); i++) {
+        newCell = new Cell;
+        if (newCell == nullptr) break; // Accounts for running out of memory
+        if (i == 0) leftmostCell = newCell;
+
+        // Assign available new cell pointers
+        newCell->value = newRowString[i];
+        newCell->left = prevCell;
+        newCell->up = prevRowCell;
+
+        // Assign available previous cell pointers
+        prevCell->right = newCell;
+
+        // Assign available pointers from the cenn above the new cell
+        if (prevRowCell != nullptr) prevRowCell->down = newCell;
+        else {  // Assigning zero cell value in best performance spot without over complicating code
+            if (prevCell == nullptr) this->zeroCell = newCell;
+        }
+
+        prevCell = newCell;
+        prevRowCell = prevRowCell->right;
+    }
+    if (leftmostCell == nullptr){
+        return nullptr;
+    }
+    return leftmostCell;
+}
+
+bool Maze::findStartAndTarget(){
+    Cell* tempCell = this->zeroCell;
     bool startFound = false;
     bool targetFound = false;
-    // Check top & bottom rows
-    for(int i = 0; i < this->graph.at(0).size(); i++) {
-        if(graph.front().at(i) == 0){
-            if (startFound && targetFound){
-                cout << "Error: More than two possable start and target locations found.";
-                break;
-            }
-            else if (startFound) {
-                this->target[0] = i;
-                this->target[1] = 0;
-                targetFound = true;
-            }
-            else {
-                this->start[0] = i;
-                this->start[1] = 0;
-                startFound = true;
-            }
-        }
-        if (graph.back().at(i) == 0){
-            if (startFound && targetFound){
-                cout << "Error: More than two possable start and target locations found.";
-                break;
-            }
-            else if (startFound) {
-                this->target[0] = i;
-                this->target[1] = graph.size() - 1;
-                targetFound = true;
-            }
-            else {
-                this->start[0] = i;
-                this->start[1] = graph.size() - 1;
-                startFound = true;
-            }
-        }
-    }
 
-    // Check left and right collumns for 0s
-        // Note: This is put second because it's less efficent and not always necessary
-    for(int i = 1; i < this->graph.size(); i++){ // Start at second row and end at second to last row to avoid redundency
-        if (graph.at(i).front() == 0){ // Check left most value in a row
-            if (startFound && targetFound){
-                cout << "Error: More than two possable start and target locations found.";
-                break;
+    while (tempCell->right != nullptr){
+        if (tempCell->value == '0'){
+            if (targetFound && startFound){
+                cout << "Error: There were more that two candidate start/target cells found." << endl;
+                return false;
             }
-            else if (startFound) {
-                this->target[0] = 0;
-                this->target[1] = i;
+            else if (startFound){
+                this->target = tempCell;
                 targetFound = true;
             }
             else {
-                this->start[0] = 0;
-                this->start[1] = i;
+                this->start = tempCell;
                 startFound = true;
             }
-        }
-        if (graph.at(i).back() == 0){ // Check right most value in a row
-            if (startFound && targetFound){
-                cout << "Error: More than two possable start and target locations found.";
-                break;
-            }
-            else if (startFound) {
-                this->target[0] = this->graph.at(i).size() - 1;
-                this->target[1] = i;
-                targetFound = true;
-            }
-            else {
-                this->start[0] = this->graph.at(i).size() - 1;
-                this->start[1] = i;
-                startFound = true;
-            }
+            tempCell = tempCell->right;
         }
     }
-    //cout << this->start[0] << "\t" << this->start[1] << endl;
-    //cout << this->target[0] << "\t" << this->target[1];
+    while (tempCell->down != nullptr){
+        if (tempCell->value == '0'){
+            if (targetFound && startFound){
+                cout << "Error: There were more that two candidate start/target cells found." << endl;
+                return false;
+            }
+            else if (startFound){
+                this->target = tempCell;
+                targetFound = true;
+            }
+            else {
+                this->start = tempCell;
+                startFound = true;
+            }
+        }
+        tempCell = tempCell->down;
+    }
+    while (tempCell->left != nullptr){
+        if (tempCell->value == '0'){
+            if (targetFound && startFound){
+                cout << "Error: There were more that two candidate start/target cells found." << endl;
+                return false;
+            }
+            else if (startFound){
+                this->target = tempCell;
+                targetFound = true;
+            }
+            else {
+                this->start = tempCell;
+                startFound = true;
+            }
+        }
+        tempCell = tempCell->left;
+    }
+    while (tempCell->up != this->zeroCell){
+        if (tempCell->value == '0'){
+            if (targetFound && startFound){
+                cout << "Error: There were more that two candidate start/target cells found." << endl;
+                return false;
+            }
+            else if (startFound){
+                this->target = tempCell;
+                targetFound = true;
+            }
+            else {
+                this->start = tempCell;
+                startFound = true;
+            }
+        }
+        tempCell = tempCell->up;
+    }
+    if (startFound && targetFound) return true;
+    return false;
+}
+
+bool Maze::printMaze(){
+    Cell* tempCellPtr;
+    while(tempCellPtr->down != nullptr){
+        string line;
+        tempCellPtr = this->zeroCell;
+        while (tempCellPtr->right != nullptr) {
+            line.push_back(tempCellPtr->value);
+            tempCellPtr = tempCellPtr->right;
+        }
+        cout << line << endl;
+    }
+    return true;
 }
