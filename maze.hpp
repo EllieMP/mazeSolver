@@ -21,18 +21,23 @@ class Maze{
         Maze(fstream&); // Creates a maze based on an open filestream
 
     // Inserting Cells
-        Cell* insertCellRow(string, Cell*);
 
-    // Methods
-        bool findStartAndTarget(); // Finds start and target cells
-        Cell* getCurrentLocation(); // Returns a vector with the current down and right distance from the top left cell
+    // Public Methods
         bool printMaze(); // Prints the maze row by row in std:cout
+        bool solveMaze(const int);
+
+    private:
+
+    // Private Methods
+        bool findStartAndTarget(); // Finds start and target cells
+        Cell* insertCellRow(string, Cell*);
+        bool findNextNode(short);
         bool moveRight();
         bool moveLeft();
         bool moveUp();
         bool moveDown();
 
-    private:
+    // Private values
         Cell* start;
         Cell* target;
         Cell* current;
